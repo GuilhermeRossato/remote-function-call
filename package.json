@@ -1,0 +1,24 @@
+{
+  "name": "remote-function-call",
+  "version": "1.0.0",
+  "description": "Remote function call development package",
+  "main": "compile.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+  },
+  "keywords": [
+    "c",
+    "rfc",
+    "remote-function-call",
+    "rpc",
+    "remote-procedure-call",
+    "compilation",
+    "gcc"
+  ],
+  "author": "Guilherme Rossato",
+  "license": "MIT"
+}
