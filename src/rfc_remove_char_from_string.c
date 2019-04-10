@@ -21,8 +21,8 @@ int rfc_remove_char_from_string(char * buffer, char char_to_remove) {
 			buffer[j++] = buffer[i];
 		}
 	} while(buffer[i++] != '\0');
-	if (i > 0 && buffer[i-1] != '\0') {
-		buffer[i++] = '\0';
+	if (j > 0 && buffer[j-1] != '\0') {
+		buffer[j++] = '\0';
 	}
-	return i-1;
+	return j-1;
 }
