@@ -5,13 +5,6 @@
 
 #define MAX_BUFFER_SIZE	256
 
-int compare_two_strings(char * a, char * b) {
-	if (strncmp(a, b, MAX_BUFFER_SIZE) == 0) {
-		return 1;
-	}
-	return 0;
-}
-
 int execute_unit_test(
 	int id,
 	char * original_input,
@@ -32,7 +25,7 @@ int execute_unit_test(
 		exit(1);
 	}
 
-	if (!compare_two_strings(expected, output)) {
+	if (!rfc_compare_two_strings(expected, output, MAX_BUFFER_SIZE)) {
 		printf("Error at sub-test %d:\n", id);
 		printf("Input : \"%s\" (%d bytes)\n", original_input, input_size);
 		printf("Output: \"%s\" (%d bytes)\n", output, input_size);
@@ -45,10 +38,10 @@ int main() {
 	execute_unit_test(1, "Hello World", ' ', "HelloWorld");
 	execute_unit_test(2, "what-is-love", '-', "whatislove");
 	execute_unit_test(3, "there-is-a-somewhat-long-text", 'e', "thr-is-a-somwhat-long-txt");
-	execute_unit_test(3, "This is a text with a \nline", '\n', "This is a text with a line");
-	execute_unit_test(3, "AAAAAAAAAAAAAAAAAAAAAAAAAAAA", 'A', "");
-	execute_unit_test(3, "", 'a', "");
-	execute_unit_test(3, "unchanged", 'x', "unchanged");
-	execute_unit_test(3, "terminated", '\0', "terminated");
+	execute_unit_test(4, "This is a text with a \nline", '\n', "This is a text with a line");
+	execute_unit_test(5, "AAAAAAAAAAAAAAAAAAAAAAAAAAAA", 'A', "");
+	execute_unit_test(6, "", 'a', "");
+	execute_unit_test(7, "unchanged", 'x', "unchanged");
+	execute_unit_test(8, "terminated", '\0', "terminated");
 	return 0;
 }

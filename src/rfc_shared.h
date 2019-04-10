@@ -21,6 +21,10 @@ typedef struct rfc_connection_data {
 	int port;
 } rfc_connection_data;
 
+int rfc_error_invalid_type_desc() {
+	return 0;
+}
+
 int rfc_error_invalid_port() {
 	return 0;
 }
@@ -50,6 +54,13 @@ int rfc_error_invalid_function_name() {
 }
 
 int rfc_error_invalid_hostname() {
+	return 0;
+}
+
+int rfc_compare_two_strings(char * a, char * b, int length) {
+	if (strncmp(a, b, length) == 0) {
+		return 1;
+	}
 	return 0;
 }
 

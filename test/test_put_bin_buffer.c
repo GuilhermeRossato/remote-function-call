@@ -5,13 +5,6 @@
 
 #define MAX_BUFFER_SIZE	256
 
-int compare_two_strings(char * a, char * b) {
-	if (strncmp(a, b, MAX_BUFFER_SIZE) == 0) {
-		return 1;
-	}
-	return 0;
-}
-
 int execute_unit_test(
 	int id,
 	char * input,
@@ -30,7 +23,7 @@ int execute_unit_test(
 		exit(1);
 	}
 
-	if (!compare_two_strings(output, buffer)) {
+	if (!rfc_compare_two_strings(output, buffer, MAX_BUFFER_SIZE)) {
 		printf("Error at sub-test %d:\n", id);
 		printf("Input : \"%s\" (%d bytes)\n", input, input_size);
 		printf("Output: \"%s\" (%d bytes)\n", buffer, strlen(buffer));

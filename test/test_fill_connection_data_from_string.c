@@ -5,13 +5,6 @@
 
 #define MAX_BUFFER_SIZE	256
 
-int compare_two_strings(char * a, char * b) {
-	if (strncmp(a, b, MAX_BUFFER_SIZE) == 0) {
-		return 1;
-	}
-	return 0;
-}
-
 int execute_unit_test(int id, char * parameter, char * expected_host, int expected_port) {
 	rfc_connection_data data;
 
@@ -25,7 +18,7 @@ int execute_unit_test(int id, char * parameter, char * expected_host, int expect
 		exit(1);
 	}
 
-	if (!compare_two_strings(data.host, expected_host)) {
+	if (!rfc_compare_two_strings(data.host, expected_host, MAX_BUFFER_SIZE)) {
 		printf("Error at sub-test %d:\n", id);
 		printf("Input : \"%s\" (%d bytes)\n", parameter, strlen(parameter));
 		printf("Output: \"%s\" (%d bytes)\n", data.host, strlen(data.host));
