@@ -4,11 +4,15 @@
   "description": "Remote function call development package",
   "main": "compile.js",
   "directories": {
-    "test": "tests"
+    "src": "./src",
+    "test": "./test"
   },
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "frappu": "^0.8.0"
+  },
   "scripts": {
+    "test": "frappu"
   },
   "keywords": [
     "c",
