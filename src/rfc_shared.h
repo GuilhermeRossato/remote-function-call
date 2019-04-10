@@ -33,7 +33,7 @@ int rfc_error_invalid_connection_string() {
 	return 0;
 }
 
-int rfc_error_send_buffer_overflow() {
+int rfc_error_buffer_overflow() {
 	return 0;
 }
 

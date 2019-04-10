@@ -17,10 +17,10 @@ int execute_unit_test(
 	char * input,
 	char * output
 ) {
-	char buffer[256] = "nothing written";
+	char buffer[MAX_BUFFER_SIZE] = "nothing written";
 	int input_size = strlen(input);
 
-	int result = rfc_put_bin_buffer(input, input_size, buffer, 256);
+	int result = rfc_put_bin_buffer(input, input_size, buffer, MAX_BUFFER_SIZE);
 	if (result != 1) {
 		printf("Error at sub-test %d:\n", id);
 		printf("Input : \"%s\" (%d bytes)\n", input, input_size);

@@ -1,5 +1,14 @@
 #include "rfc_shared.h"
 
+/**
+ * Takes a string in the format "hostname:port" and break it apart into the 'rfc_connection_data' struct (host as char array and port as integer).
+ *
+ * If the port is not specified the default (RFC_DEFAULT_PORT ~ 8086) will be used
+ *
+ * @param  string  The null-terminated char array that will be used to separate hostname and port.
+ * @param  ptr     A previously allocated struct to be used as output of the function, where its properties will be written from the input string
+ * @return         A success indicator if successful (usually 1) or an error indicator otherwise
+ */
 int rfc_fill_connection_data_from_string(char * string, rfc_connection_data * ptr) {
 	if (ptr == 0 || string == 0) {
 		return rfc_error_invalid_parameter();
@@ -39,7 +48,7 @@ int rfc_fill_connection_data_from_string(char * string, rfc_connection_data * pt
 		ptr->port = atoi(portBuffer);
 	}
 
-	if (ptr->port <= 0 || ptr->port >= 0) {
+	if (ptr->port <= 0) {
 		return rfc_error_invalid_port();
 	}
 
