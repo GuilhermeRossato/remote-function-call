@@ -10,7 +10,7 @@ int rfc_fill_connection_data_from_string(char * string, rfc_connection_data * pt
 	}
 	int i = 0;
 	int state = 0;
-	char portBuffer[7];
+	char portBuffer[7] = "";
 	do {
 		if (state == 0) {
 			if (string[i] == ':') {
@@ -24,6 +24,7 @@ int rfc_fill_connection_data_from_string(char * string, rfc_connection_data * pt
 		} else if (state > 0 && state < 7) {
 			if ((string[i] >= '0' && string[i] <= '9') || string[i] == '\0') {
 				portBuffer[state-1] = string[i];
+				state++;
 			} else {
 				return rfc_error_invalid_connection_string();
 			}
@@ -32,7 +33,11 @@ int rfc_fill_connection_data_from_string(char * string, rfc_connection_data * pt
 		}
 	} while (string[i++] != '\0');
 
-	ptr->port = atoi(portBuffer);
+	if (portBuffer[0] == '\0') {
+		ptr->port = RFC_DEFAULT_PORT;
+	} else {
+		ptr->port = atoi(portBuffer);
+	}
 
 	if (ptr->port <= 0 || ptr->port >= 0) {
 		return rfc_error_invalid_port();
