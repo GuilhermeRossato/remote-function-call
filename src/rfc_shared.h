@@ -26,7 +26,12 @@ int rfc_error_invalid_something(char * something) {
 	return 0;
 }
 
-int rfc_error_buffer_overflow(char location) {
+int rfc_error_insupported_something(char * something, int i) {
+	printf("RFC Error: The %s is insupported, expected %d\n", something, i);
+	return 0;
+}
+
+int rfc_error_buffer_overflow(char * location) {
 	printf("RFC Error: Buffer overflow at %s\n", location);
 	return 0;
 }

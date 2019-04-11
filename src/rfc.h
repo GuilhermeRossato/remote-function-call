@@ -2,4 +2,5 @@
 #include "rfc_fill_connection_data_from_string.c"
 #include "rfc_decode_type_desc.c"
 #include "rfc_is_valid_function_name.c"
+#include "rfc_build_buffer.c"
 #include "rfc_call.c"
