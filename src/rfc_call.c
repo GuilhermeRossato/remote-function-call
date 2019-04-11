@@ -1,66 +1,74 @@
-int rfc_call(int parameter_length, ...) {
+#include "rfc_shared.h"
+
+#define rfc_call(...) _rfc_internal_call_function(__VA_ARGS__, 0)
+
+int _rfc_internal_call_function(char * connection_str, ...) {
 	va_list ap;
-	va_start(ap, parameter_length);
+	va_start(ap, connection_str);
 
-	char * hostname = va_arg(ap, char *);
-
-	if (hostname[0] != '1' || hostname[1] != '2' || hostname[2] != '7') {
+	// Handle connection string, hostname and port.
+	if (connection_str[0] != '1' || connection_str[1] != '2' || connection_str[2] != '7') {
 		va_end(ap);
-		return rfc_error_invalid_hostname();
-	}
-	if (strnlen(hostname, 512) >= 511) {
-		va_end(ap);
-		return rfc_error_hostname_too_large();
+		return rfc_error_invalid_something("connection string");
 	}
 
-	int port = va_arg(ap, int);
-	if (port > 256*256) {
+	if (strnlen(connection_str, RFC_HOST_BUFFER_SIZE) >= RFC_HOST_BUFFER_SIZE-1) {
 		va_end(ap);
-		return rfc_error_port_too_high();
+		return rfc_error_invalid_something("connection string");
 	}
+
+	rfc_connection_data data;
+
+	int successCode = rfc_fill_connection_data_from_string(connection_str, &data);
+	if (!successCode) {
+		va_end(ap);
+		return successCode;
+	}
+
+	printf("connection str: %s\n", connection_str);
+	printf("host: %s\n", data.host);
+	printf("port: %d\n", data.port);
+
+	// Handle function name
 
 	char * function_name = va_arg(ap, char *);
 
 	if (!rfc_is_valid_function_name(function_name)) {
 		va_end(ap);
-		return rfc_error_invalid_function_name();
+		return rfc_error_invalid_something("function name");
 	}
 
-	char buffer[RFC_MAX_SEND_BUFFER_SIZE];
-	int buffer_index = 0;
-	int i;
-	int parameter_type;
+	printf("function name: %s\n", function_name);
 
-	void * buffer_position;
-	int * int_ptr;
-
-	for (i=3;i<parameter_length;i++) {
-		if (buffer_index >= RFC_MAX_SEND_BUFFER_SIZE) {
-			return rfc_error_buffer_overflow();
-		}
-		parameter_type = va_arg(ap, int);
-		if (parameter_type == RFC_INT) {
-			int_ptr = (int *) ( (void *) buffer + buffer_index);
-			*int_ptr = RFC_INT;
-			buffer_index += sizeof(int);
-
-			int_ptr = (int *) ( (void *) buffer + buffer_index);
-			*int_ptr = va_arg(ap, int);
-			buffer_index += sizeof(int) + sizeof(int);
-			i++;
-		} else if (parameter_type == RFC_CHAR) {
-			buffer_index += sizeof(int) + sizeof(char);
-		} else if (parameter_type == RFC_CHAR_ARRAY) {
-			char * string_parameter = va_arg(ap, char *);
-			int string_length = strnlen(string_parameter, RFC_MAX_SEND_BUFFER_SIZE);
-			buffer_index += sizeof(int) + string_length + 1;
-			if (buffer_index >= RFC_MAX_SEND_BUFFER_SIZE) {
-				va_end(ap);
-				return rfc_error_buffer_overflow();
+	// Buffer parameters
+	int state = 0;
+	char * last_type_string;
+	int last_type_id;
+	while (1) {
+		if (state == 0) {
+			last_type_string = va_arg(ap, char *);
+			if (last_type_string == 0 || last_type_string == '\0') {
+				printf("Gracefull exit\n");
+				break;
 			}
+			state = 1;
+		} else if (state == 1) {
+			printf("%s: ", last_type_string);
+			last_type_id = rfc_decode_type_desc(last_type_string);
+			if (last_type_id == RFC_INT) {
+				printf("%d", va_arg(ap, int));
+				state = 0;
+			} else if (last_type_id == RFC_CHAR) {
+				printf("%c", (char) va_arg(ap, int));
+				state = 0;
+			} else {
+				printf("\n");
+				va_end(ap);
+				return rfc_error_invalid_something("function parameter");
+			}
+			printf("\n");
 		}
-	}-
-	rfc_print_hex_buffer(buffer, buffer_index);
+	}
 	va_end(ap);
 	return 1;
 }
