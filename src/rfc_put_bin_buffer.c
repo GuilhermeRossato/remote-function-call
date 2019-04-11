@@ -1,5 +1,8 @@
 #include "rfc_shared.h"
 
+#ifndef DEF_PUT_BIN_BUFFER
+#define DEF_PUT_BIN_BUFFER
+
 /**
  * Convert a binary buffer (array) into a string array, but written in binary with 0 and 1 (digits) and each byte separated by a space.
  *
@@ -76,3 +79,5 @@ int rfc_print_bin_buffer(
 ) {
 	return rfc_put_bin_buffer(buffer_to_print, buffer_to_print_length, 0, 0);
 }
+
+#endif

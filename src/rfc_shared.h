@@ -16,10 +16,21 @@
 #define RFC_DEFAULT_PORT	8086
 #define RFC_FALLBACK_PORT	8087
 
+#define RFC_PARAMTYPE_TYPE	int
+#define RFC_PARAMSIZE_TYPE	size_t
+#define RFC_BYTEARRAY_TYPE	unsigned char
+
 typedef struct rfc_connection_data {
 	char host[RFC_HOST_BUFFER_SIZE];
 	int port;
 } rfc_connection_data;
+
+typedef struct rfc_parameter_info {
+	RFC_PARAMTYPE_TYPE type;
+	RFC_PARAMSIZE_TYPE size;
+	void * data;
+	struct rfc_parameter_info * next;
+} rfc_parameter_info;
 
 int rfc_error_invalid_something(char * something) {
 	printf("RFC Error: The %s is invalid\n", something);
