@@ -23,7 +23,7 @@ int rfc_put_hex_buffer(
 	int print_instead_of_put = (buffer_to_save_length == 0);
 
 	if (!print_instead_of_put && buffer_to_save_length <= output_size) {
-		return rfc_error_buffer_overflow();
+		return rfc_error_buffer_overflow("hexadecimal buffer");
 	}
 
 	char hexDigits[4];
@@ -41,7 +41,7 @@ int rfc_put_hex_buffer(
 			}
 		} else {
 			if ((i*3+2) >= buffer_to_save_length) {
-				return rfc_error_buffer_overflow();
+				return rfc_error_buffer_overflow("hexadecimal buffer");
 			}
 			if (i > 0) {
 				b[i*3-1] = ' ';

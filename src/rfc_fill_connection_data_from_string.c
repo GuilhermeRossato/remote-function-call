@@ -1,4 +1,5 @@
 #include "rfc_shared.h"
+#include <stdlib.h>
 
 /**
  * Takes a string in the format "hostname:port" and break it apart into the 'rfc_connection_data' struct (host as char array and port as integer).
@@ -11,11 +12,11 @@
  */
 int rfc_fill_connection_data_from_string(char * string, rfc_connection_data * ptr) {
 	if (ptr == 0 || string == 0) {
-		return rfc_error_invalid_parameter();
+		return rfc_error_invalid_something("parameter");
 	}
 	int len = strnlen(string, RFC_HOST_BUFFER_SIZE+1);
 	if (len <= 1 || len >= RFC_HOST_BUFFER_SIZE) {
-		return rfc_error_invalid_connection_string();
+		return rfc_error_invalid_something("connection string");
 	}
 	int i = 0;
 	int state = 0;
@@ -26,7 +27,7 @@ int rfc_fill_connection_data_from_string(char * string, rfc_connection_data * pt
 				state = 1;
 				ptr->host[i] = '\0';
 			} else if (string[i] == '\n' || string[i] == '\r') {
-				return rfc_error_invalid_connection_string();
+				return rfc_error_invalid_something("hostname");
 			} else {
 				ptr->host[i] = string[i];
 			}
@@ -35,10 +36,10 @@ int rfc_fill_connection_data_from_string(char * string, rfc_connection_data * pt
 				portBuffer[state-1] = string[i];
 				state++;
 			} else {
-				return rfc_error_invalid_connection_string();
+				return rfc_error_invalid_something("port");
 			}
 		} else {
-			return rfc_error_invalid_connection_string();
+			return rfc_error_invalid_something("connection string");
 		}
 	} while (string[i++] != '\0');
 
@@ -49,7 +50,7 @@ int rfc_fill_connection_data_from_string(char * string, rfc_connection_data * pt
 	}
 
 	if (ptr->port <= 0) {
-		return rfc_error_invalid_port();
+		return rfc_error_invalid_something("port");
 	}
 
 	return 1;

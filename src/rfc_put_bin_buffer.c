@@ -24,7 +24,7 @@ int rfc_put_bin_buffer(
 	int print_instead_of_put = (buffer_to_save_length == 0);
 
 	if (!print_instead_of_put && buffer_to_save_length <= output_size) {
-		return rfc_error_buffer_overflow();
+		return rfc_error_buffer_overflow("binary buffer");
 	}
 
 	int outputIndex = 0;
@@ -47,7 +47,7 @@ int rfc_put_bin_buffer(
 				printf("%d", byte);
 			} else {
 				if (outputIndex >= buffer_to_save_length) {
-					return rfc_error_buffer_overflow();
+					return rfc_error_buffer_overflow("binary buffer");
 				}
 				buffer_to_save[outputIndex++] = '0'+byte;
 			}
@@ -55,7 +55,7 @@ int rfc_put_bin_buffer(
 	}
 	if (!print_instead_of_put) {
 		if (outputIndex >= buffer_to_save_length) {
-			return rfc_error_buffer_overflow();
+			return rfc_error_buffer_overflow("binary buffer");
 		}
 		buffer_to_save[outputIndex] = '\0';
 	}

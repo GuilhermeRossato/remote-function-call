@@ -1,5 +1,13 @@
 #include "rfc_shared.h"
 
+/**
+ * Checks if a string is a valid function name, returning 1 for valid values and 0 for invalid values
+ *
+ * @param  name  The string to be checked
+ *
+ * @return       Returns a integer indicating a valid function name. Returns 0 (zero) if the function is invalid, 1 if it is valid
+ *
+ */
 int rfc_is_valid_function_name(char * name) {
 	if (name == 0) {
 		return 0;
