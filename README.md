@@ -16,6 +16,26 @@ Programming should be simple and should ALWAYS strive to be as simple as the lan
 
 If you need to go over hoops to do something simple (i.e. call a function from another program) then you're either reinventing the wheel or doing something wrong.
 
+## Repository Usage
+
+This repository is for the development of the library which will be found at the `build` directory once it is finished.
+
+If you want to develop, change or expand it, here are the steps to clone the repository, install dependencies (with `npm`) and run the test suite:
+
+```bash
+git clone https://github.com/GuilhermeRossato/remote-function-call.git
+cd remote-function-call
+npm install
+npm test
+```
+
+The library is not done yet, but once it is you will be able to build it with:
+
+```
+npm run build
+```
+
+This will generate a `rfc.h` file at the `build` folder. To include and use it in your programs C you just need to include it.
 
 ## Structure and Usage
 
@@ -29,7 +49,9 @@ Ideally, setting up a server should be as simple as this:
 #include "rfc.h"
 
 void my_function(int value) {
-	printf("Someone called me with %d\n", value);
+	char * origin = rfc_get_caller_name();
+
+	printf("%s called me with %d\n", origin, value);
 }
 
 int main() {
@@ -45,7 +67,7 @@ And instancing a client to call that exposed function with a parameter should be
 
 ```c
 // client.c
-#include <stdio.h>
+#include "rfc.h"
 
 int main() {
 	rfc_call("localhost:8086", "my_function", "int", 42);
@@ -55,3 +77,6 @@ int main() {
 ```
 
 The above structure and example may change as development progresses.
+
+## Testing
+
