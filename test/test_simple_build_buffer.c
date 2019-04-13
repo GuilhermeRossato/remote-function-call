@@ -98,13 +98,13 @@ int execute_unit_test_2() {
 int execute_unit_test_3() {
 	const int expected_size = sizeof(int)+sizeof(RFC_PARAMTYPE_TYPE)+sizeof(RFC_PARAMSIZE_TYPE)+sizeof(char);
 
-	rfc_parameter_info a;
 	char value = 67;
-
+	rfc_parameter_info a;
 	a.type = RFC_CHAR;
 	a.count = 1;
 	a.next = 0;
 	a.data = &value;
+
 
 	int buffer_size = rfc_get_buffer_size(&a);
 
@@ -116,6 +116,7 @@ int execute_unit_test_3() {
 	}
 
 	RFC_BYTEARRAY_TYPE buffer[expected_size];
+	RFC_BYTEARRAY_TYPE * buffer_last_byte = buffer + expected_size - 1;
 
 	int result = rfc_build_buffer(&a, buffer, buffer_size);
 
@@ -138,7 +139,6 @@ int execute_unit_test_3() {
 		printf("Expect: %d\n", RFC_CHAR);
 		exit(1);
 	}
-
 	int_helper++;
 
 	if (*int_helper != a.count) {
@@ -148,14 +148,24 @@ int execute_unit_test_3() {
 		printf("Expect: %d\n", a.count);
 		exit(1);
 	}
+	int_helper++;
 
-	char * char_helper = (char *) char_helper;
+	char * char_helper = (char *) int_helper;
 
 	if (*char_helper != value) {
 		printf("Error at sub-test 3: Fourth buffer value (parameter value)\n");
 		printf("Input : %d\n", value);
 		printf("Output: %d\n", *char_helper);
 		printf("Expect: %d\n", value);
+		exit(1);
+	}
+
+	if ((RFC_BYTEARRAY_TYPE *) char_helper != buffer_last_byte) {
+		printf("Error at sub-test 3: Final buffer pointer is not at the expected end\n");
+		printf("Start : %08X\n", buffer);
+		printf("Length: %8X\n", buffer_size-1);
+		printf("Expect: %08X\n", buffer_last_byte);
+		printf("Output: %08X\n", char_helper);
 		exit(1);
 	}
 }
