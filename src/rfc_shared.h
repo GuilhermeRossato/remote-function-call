@@ -5,6 +5,8 @@
 #include <string.h> // strnlen
 #include <stdio.h> // putc, printf
 
+#define RFC_VERSION		1
+
 #define RFC_INT			1
 #define RFC_CHAR		2
 #define RFC_CHAR_ARRAY	3
@@ -17,7 +19,7 @@
 #define RFC_FALLBACK_PORT	8087
 
 #define RFC_PARAMTYPE_TYPE	int
-#define RFC_PARAMSIZE_TYPE	size_t
+#define RFC_PARAMSIZE_TYPE	int
 #define RFC_BYTEARRAY_TYPE	unsigned char
 
 typedef struct rfc_connection_data {
@@ -27,7 +29,7 @@ typedef struct rfc_connection_data {
 
 typedef struct rfc_parameter_info {
 	RFC_PARAMTYPE_TYPE type;
-	RFC_PARAMSIZE_TYPE size;
+	RFC_PARAMSIZE_TYPE count;
 	void * data;
 	struct rfc_parameter_info * next;
 } rfc_parameter_info;
@@ -47,8 +49,22 @@ int rfc_error_buffer_overflow(char * location) {
 	return 0;
 }
 
+int rfc_error_unimplemented(char * section) {
+	printf("RFC Error: The parameter or operation is not implemented (%s)", section);
+	return 0;
+}
+
+int rfc_error_function_not_found(char * name) {
+	printf("RFC Error: The function \"%s\" was not found or is not exposed\n", name);
+	return 0;
+}
+
 int rfc_compare_two_strings(char * a, char * b, int length) {
-	if (strncmp(a, b, length) == 0) {
+	if (a == 0 && b == 0) {
+		return 1;
+	} else if (a == 0 || b == 0) {
+		return 0;
+	} else if (strncmp(a, b, length) == 0) {
 		return 1;
 	}
 	return 0;
