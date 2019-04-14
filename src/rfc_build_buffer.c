@@ -21,17 +21,17 @@ int rfc_build_buffer(rfc_parameter_info * root, RFC_BYTEARRAY_TYPE * buffer, int
 		*int_helper = node->count;
 		int_helper++;
 		if (node->type == RFC_INT) {
-			for (i=0;i<node->count;i++) {
+			for (i=0;i == 0 || i<node->count;i++) {
 				*int_helper = (int)(((int *)node->data)[i]);
 				int_helper++;
 			}
 		} else if (node->type == RFC_CHAR) {
 			char_helper = (char *) int_helper;
-			for (i=0;i<node->count;i++) {
+			for (i=0;i == 0 || i<node->count;i++) {
 				*char_helper = (char)(((char *)node->data)[i]);
 				char_helper++;
 			}
-			int_helper = (int *) int_helper;
+			int_helper = (int *) char_helper;
 		}
 		node = node->next;
 	}

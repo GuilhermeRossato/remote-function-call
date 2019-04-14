@@ -5,9 +5,6 @@
 #include "../src/rfc_put_bin_buffer.c"
 #include "../src/rfc_expose.c"
 
-#define BUFFER_VERS_ADDR	0
-#define BUFFER_SIZE_ADDR	1
-
 int value;
 
 int foo1(int a) {
