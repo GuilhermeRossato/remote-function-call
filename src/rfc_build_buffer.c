@@ -1,7 +1,6 @@
 #include <malloc.h>
 #include "rfc_shared.h"
 #include "rfc_get_buffer_size.c"
-#include "rfc_apply_type_to_buffer.c"
 
 int rfc_build_buffer(rfc_parameter_info * root, RFC_BYTEARRAY_TYPE * buffer, int buffer_size) {
 	rfc_parameter_info * node = root;
