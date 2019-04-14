@@ -21,7 +21,11 @@ int rfc_call_exposed_function(char * name, unsigned char * input_buffer) {
 		return validation_result;
 	}
 
-	if (i == rfc_int) {
+	if (i == rfc_void) {
+		int (*callback)();
+		callback = node->func;
+		return callback();
+	} else if (i == rfc_int) {
 		int (*callback)(int);
 		callback = node->func;
 		return callback(int_aux[2]);
@@ -37,6 +41,11 @@ int rfc_call_exposed_function(char * name, unsigned char * input_buffer) {
 		int (*callback)(int, int, int, int);
 		callback = node->func;
 		return callback(int_aux[2], int_aux[5], int_aux[8], int_aux[11]);
+	} else if (i == rfc_inta_int) {
+		int (*callback)(int*, int);
+		callback = node->func;
+		int first_parameter_count = int_aux[1] == 0 ? 1 : int_aux[1];
+		return callback(&int_aux[2], int_aux[1+first_parameter_count+3]);
 	} else if (i == rfc_char) {
 		int (*callback)(char);
 		callback = node->func;
@@ -53,6 +62,10 @@ int rfc_call_exposed_function(char * name, unsigned char * input_buffer) {
 		int (*callback)(char, char, char, char);
 		callback = node->func;
 		return callback(char_aux[3], char_aux[5], char_aux[8], char_aux[11]);
+	} else if (i == rfc_chara) {
+		int (*callback)(char*);
+		callback = node->func;
+		return callback(&char_aux[8]);
 	} else {
 		return rfc_error_insupported_something("input type on call exposed function", i);
 	}

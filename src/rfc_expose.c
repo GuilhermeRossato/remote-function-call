@@ -30,6 +30,7 @@ int rfc_expose(char * descriptor, void * func) {
 	char function_name[128];
 	int function_name_length = open_paren-(&descriptor[4]);
 	strncpy(function_name, &descriptor[4], function_name_length);
+	function_name[function_name_length] = '\0';
 
 	char params[128];
 	rfc_put_filtered_string(&descriptor[4+function_name_length+1], ' ', params, 127);
@@ -63,6 +64,7 @@ int _rfc_add_to_exposed_functions(char * name, enum rfc_input_type input_type, v
 	}
 	strncpy(node->name, name, 63);
 	node->name[63] = '\0';
+	node->name[strlen(name)] = '\0';
 	node->input_type = input_type;
 	node->func = func;
 	node->next = 0;

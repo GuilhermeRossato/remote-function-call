@@ -1,5 +1,8 @@
 #include "rfc_shared.h"
 
+#ifndef DEF_PUT_FILTERED_STRING
+#define DEF_PUT_FILTERED_STRING
+
 /**
  * Copies a null-terminated char array skipping every occurence of a character to another null-terminated char array
  * @param  buffer                 Source buffer with the chars to be removed
@@ -30,3 +33,5 @@ int rfc_put_filtered_string(char * buffer, char char_to_remove, char * buffer_to
 	}
 	return j-1;
 }
+
+#endif

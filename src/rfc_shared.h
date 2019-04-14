@@ -8,8 +8,9 @@
 #define RFC_VERSION		1
 
 #define RFC_INT			1
-#define RFC_CHAR		2
-#define RFC_CHAR_ARRAY	3
+#define RFC_INT_ARRAY	2
+#define RFC_CHAR		3
+#define RFC_CHAR_ARRAY	4
 
 #define RFC_MAX_CONNECTIONS	64
 #define RFC_MAX_SEND_BUFFER_SIZE	256
@@ -54,7 +55,7 @@ int rfc_error_invalid_something(char * something) {
 }
 
 int rfc_error_insupported_something(char * something, int i) {
-	printf("RFC Error: The %s is insupported, expected %d\n", something, i);
+	printf("RFC Error: The %s is insupported (%d)\n", something, i);
 	return 0;
 }
 
@@ -74,7 +75,7 @@ int rfc_error_function_not_found(char * name) {
 }
 
 int rfc_compare_two_strings(char * a, char * b, int length) {
-	if (a == 0 && b == 0) {
+	if (a == b) {
 		return 1;
 	} else if (a == 0 || b == 0) {
 		return 0;

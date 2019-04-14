@@ -1,5 +1,6 @@
 enum rfc_input_type {
 	rfc_unknown,
+	rfc_void,
 
 	rfc_int,
 	rfc_int_int,
@@ -28,7 +29,9 @@ enum rfc_input_type {
 };
 
 enum rfc_input_type rfc_get_input_type_from_param_descriptor(char * params) {
-	if (params[0] == 'i') {
+	if (params[0] == '\0') {
+		return rfc_void;
+	} else if (params[0] == 'i') {
 		if (rfc_compare_two_strings(params, "int", 127)) {
 			return rfc_int;
 		} else if (rfc_compare_two_strings(params, "int*", 127)) {

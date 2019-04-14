@@ -10,7 +10,9 @@ int rfc_validate_buffer_for_function_node(void * buffer, func_node_type * node) 
 	int * int_aux = (int *) buffer;
 	char * char_aux = (char *) buffer;
 
-	if (i == rfc_int) {
+	if (i == rfc_void) {
+		return 1;
+	} else if (i == rfc_int) {
 		if (int_aux[0] != RFC_INT) {
 			return rfc_error_invalid_something("first parameter type");
 		}
@@ -83,10 +85,10 @@ int rfc_validate_buffer_for_function_node(void * buffer, func_node_type * node) 
 			return rfc_error_invalid_something("first parameter type");
 		}
 		int first_parameter_count = int_aux[1] == 0 ? 1 : int_aux[1];
-		if (int_aux[1+first_parameter_count] != RFC_INT) {
+		if (int_aux[1+first_parameter_count+1] != RFC_INT) {
 			return rfc_error_invalid_something("second parameter type");
 		}
-		if (int_aux[1+first_parameter_count+1] != 0) {
+		if (int_aux[1+first_parameter_count+2] != 0) {
 			return rfc_error_invalid_something("second parameter count");
 		}
 	} else if (i == rfc_char) {
@@ -183,8 +185,34 @@ int rfc_validate_buffer_for_function_node(void * buffer, func_node_type * node) 
 		if (int_aux[1] != 0) {
 			return rfc_error_invalid_something("fourth parameter count");
 		}
+	} else if (i == rfc_chara) {
+		if (int_aux[0] != RFC_CHAR) {
+			return rfc_error_invalid_something("first parameter type");
+		}
+	} else if (i == rfc_chara_int) {
+		if (int_aux[0] != RFC_CHAR) {
+			return rfc_error_invalid_something("first parameter type");
+		}
+		int_aux++;
+		int string_count = *int_aux;
+		int_aux++;
+		char_aux = (char *) int_aux;
+		printf("skipping %d characters\n", string_count);
+		int x;
+		for (x=-4;x<string_count+4;x++) {
+			printf("%d ", char_aux[x]);
+		}
+		printf("\n");
+		char_aux += string_count - 1;
+		int_aux = (int *) char_aux;
+		if (int_aux[0] != RFC_CHAR) {
+			return rfc_error_invalid_something("second parameter type");
+		}
+		if (int_aux[1] != 0) {
+			return rfc_error_invalid_something("second parameter count");
+		}
 	} else {
-		return rfc_error_invalid_something("validation for input type");
+		return rfc_error_invalid_something("(unhandled) validation for input type");
 	}
 	return 1;
 }

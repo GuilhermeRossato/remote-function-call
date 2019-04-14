@@ -15,6 +15,10 @@ int rfc_build_buffer(rfc_parameter_info * root, RFC_BYTEARRAY_TYPE * buffer, int
 
 	int i;
 	while (node) {
+		if (node->data == 0) {
+			node = node->next;
+			continue;
+		}
 		*int_helper = node->type;
 		int_helper++;
 		*int_helper = node->count;

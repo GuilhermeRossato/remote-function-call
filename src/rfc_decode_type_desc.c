@@ -15,6 +15,8 @@ int rfc_decode_type_desc(char * rawDesc) {
 		return RFC_INT;
 	} else if (rfc_compare_two_strings(desc, "char", RFC_MAX_TYPE_DESC_LENGTH)) {
 		return RFC_CHAR;
+	} else if (rfc_compare_two_strings(desc, "int*", RFC_MAX_TYPE_DESC_LENGTH)) {
+		return RFC_INT_ARRAY;
 	} else if (rfc_compare_two_strings(desc, "char*", RFC_MAX_TYPE_DESC_LENGTH)) {
 		return RFC_CHAR_ARRAY;
 	} else {

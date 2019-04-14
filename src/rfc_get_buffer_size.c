@@ -9,6 +9,10 @@ int rfc_get_buffer_size(rfc_parameter_info * root) {
 	int count;
 	buffer_size += sizeof(int);
 	while (node) {
+		if (node->data == 0) {
+			node = node->next;
+			continue;
+		}
 		buffer_size += sizeof(RFC_PARAMTYPE_TYPE);
 		buffer_size += sizeof(RFC_PARAMSIZE_TYPE);
 		count = node->count == 0 ? 1 : node->count;
