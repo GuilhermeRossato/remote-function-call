@@ -50,7 +50,7 @@ int rfc_error_buffer_overflow(char * location) {
 }
 
 int rfc_error_unimplemented(char * section) {
-	printf("RFC Error: The parameter or operation is not implemented (%s)", section);
+	printf("RFC Error: The parameter or operation is not implemented (%s)\n", section);
 	return 0;
 }
 

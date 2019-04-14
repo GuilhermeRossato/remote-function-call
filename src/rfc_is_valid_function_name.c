@@ -23,7 +23,7 @@ int rfc_is_valid_function_name(char * name) {
 		if (i == 0 && name[i] == '\0') {
 			return 0;
 		}
-		if (i >= 256) {
+		if (i >= 128) {
 			return 0;
 		}
 		if (name[i] == '\0') {
