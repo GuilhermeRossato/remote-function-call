@@ -34,6 +34,20 @@ typedef struct rfc_parameter_info {
 	struct rfc_parameter_info * next;
 } rfc_parameter_info;
 
+int rfc_compare_two_strings(char * a, char * b, int length);
+
+#include "rfc_input_type.c"
+
+typedef struct func_node_type {
+	char name[64];
+	enum rfc_input_type input_type;
+	unsigned int input_size;
+	void * func;
+	struct func_node_type * next;
+} func_node_type;
+
+func_node_type rfc_func_root = {.func = 0};
+
 int rfc_error_invalid_something(char * something) {
 	printf("RFC Error: The %s is invalid\n", something);
 	return 0;
