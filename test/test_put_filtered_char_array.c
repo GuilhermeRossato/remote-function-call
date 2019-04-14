@@ -1,7 +1,7 @@
 #include <stdlib.h> // exit
 #include <string.h> // strncmp
 #include <stdio.h> // printf
-#include "../src/rfc_put_filtered_char_array.c"
+#include "../src/rfc_put_filtered_string.c"
 
 #define MAX_BUFFER_SIZE	256
 
@@ -14,7 +14,7 @@ int execute_unit_test(
 	char output[MAX_BUFFER_SIZE];
 	int input_size = strlen(input);
 
-	int length = rfc_put_filtered_char_array(input, to_remove, output, MAX_BUFFER_SIZE);
+	int length = rfc_put_filtered_string(input, to_remove, output, MAX_BUFFER_SIZE);
 
 	if (length < 0) {
 		printf("Error at sub-test %d:\n", id);
