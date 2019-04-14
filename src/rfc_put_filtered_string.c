@@ -8,7 +8,7 @@
  * @param  buffer_to_save_length  The max length of the buffer_to_save_length
  * @return                        The bytes written to buffer_to_save or zero if there was an error.
  */
-int rfc_put_filtered_char_array(char * buffer, char char_to_remove, char * buffer_to_save, size_t buffer_to_save_length) {
+int rfc_put_filtered_string(char * buffer, char char_to_remove, char * buffer_to_save, size_t buffer_to_save_length) {
 	int i = 0;
 	int j = 0;
 	do {
