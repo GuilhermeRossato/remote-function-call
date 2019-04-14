@@ -1,12 +1,12 @@
 #include "rfc_shared.h"
-#include "rfc_put_filtered_char_array.c"
+#include "rfc_put_filtered_string.c"
 
 #define RFC_MAX_TYPE_DESC_LENGTH	32
 
 int rfc_decode_type_desc(char * rawDesc) {
 	char desc[30];
 
-	int result = rfc_put_filtered_char_array(rawDesc, ' ', desc, RFC_MAX_TYPE_DESC_LENGTH);
+	int result = rfc_put_filtered_string(rawDesc, ' ', desc, RFC_MAX_TYPE_DESC_LENGTH);
 	if (result < 0) {
 		return 0;
 	}
