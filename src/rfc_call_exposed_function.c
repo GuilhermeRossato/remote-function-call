@@ -1,9 +1,10 @@
 #include "rfc_shared.h"
 #include "rfc_validate_buffer_for_function_node.c"
+#include "rfc_dereference_function_call.c"
 
 func_node_type * _rfc_find_exposed_function_by_name(char * name);
 
-int rfc_call_exposed_function(char * name, unsigned char * input_buffer) {
+int rfc_call_exposed_function(char * name, unsigned char * input_buffer, int input_length) {
 	func_node_type * node = _rfc_find_exposed_function_by_name(name);
 	if (node == 0) {
 		return rfc_error_function_not_found(name);
@@ -14,62 +15,15 @@ int rfc_call_exposed_function(char * name, unsigned char * input_buffer) {
 	int buffer_size = *int_aux;
 
 	int_aux++;
-	char * char_aux = (char *) int_aux;
 
 	int validation_result = rfc_validate_buffer_for_function_node((void *) int_aux, node);
 	if (!validation_result) {
 		return validation_result;
 	}
 
-	if (i == rfc_void) {
-		int (*callback)();
-		callback = node->func;
-		return callback();
-	} else if (i == rfc_int) {
-		int (*callback)(int);
-		callback = node->func;
-		return callback(int_aux[2]);
-	} else if (i == rfc_int_int) {
-		int (*callback)(int, int);
-		callback = node->func;
-		return callback(int_aux[2], int_aux[5]);
-	} else if (i == rfc_int_int_int) {
-		int (*callback)(int, int, int);
-		callback = node->func;
-		return callback(int_aux[2], int_aux[5], int_aux[8]);
-	} else if (i == rfc_int_int_int_int) {
-		int (*callback)(int, int, int, int);
-		callback = node->func;
-		return callback(int_aux[2], int_aux[5], int_aux[8], int_aux[11]);
-	} else if (i == rfc_inta_int) {
-		int (*callback)(int*, int);
-		callback = node->func;
-		int first_parameter_count = int_aux[1] == 0 ? 1 : int_aux[1];
-		return callback(&int_aux[2], int_aux[1+first_parameter_count+3]);
-	} else if (i == rfc_char) {
-		int (*callback)(char);
-		callback = node->func;
-		return callback(char_aux[3]);
-	} else if (i == rfc_char_char) {
-		int (*callback)(char, char);
-		callback = node->func;
-		return callback(char_aux[sizeof(int)*2], char_aux[sizeof(int)*4+1]);
-	} else if (i == rfc_char_char_char) {
-		int (*callback)(char, char, char);
-		callback = node->func;
-		return callback(char_aux[3], char_aux[5], char_aux[8]);
-	} else if (i == rfc_char_char_char_char) {
-		int (*callback)(char, char, char, char);
-		callback = node->func;
-		return callback(char_aux[3], char_aux[5], char_aux[8], char_aux[11]);
-	} else if (i == rfc_chara) {
-		int (*callback)(char*);
-		callback = node->func;
-		return callback(&char_aux[8]);
-	} else {
-		return rfc_error_insupported_something("input type on call exposed function", i);
-	}
-	return 0;
+	int call_result = rfc_dereference_function_call(node->func, node->input_type, (void *) int_aux, buffer_size);
+
+	return call_result;
 }
 
 func_node_type * _rfc_find_exposed_function_by_name(char * name) {

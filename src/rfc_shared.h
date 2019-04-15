@@ -16,6 +16,7 @@
 #define RFC_MAX_SEND_BUFFER_SIZE	256
 #define RFC_MAX_ERROR_BUFFER_SIZE	256
 #define RFC_HOST_BUFFER_SIZE	128
+#define RFC_MAX_FUNCTION_DESCRIPTOR_SIZE	256
 #define RFC_DEFAULT_PORT	8086
 #define RFC_FALLBACK_PORT	8087
 
@@ -31,6 +32,7 @@ typedef struct rfc_connection_data {
 typedef struct rfc_parameter_info {
 	RFC_PARAMTYPE_TYPE type;
 	RFC_PARAMSIZE_TYPE count;
+	char is_data_allocated;
 	void * data;
 	struct rfc_parameter_info * next;
 } rfc_parameter_info;
