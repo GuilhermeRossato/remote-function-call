@@ -17,10 +17,12 @@ int rfc_get_buffer_size(rfc_parameter_info * root) {
 		buffer_size += sizeof(RFC_PARAMSIZE_TYPE);
 		count = node->count == 0 ? 1 : node->count;
 
-		if (node->type == RFC_INT) {
+		if (node->type == RFC_INT || node->type == RFC_INT_ARRAY) {
 			buffer_size += count * sizeof(int);
 		} else if (node->type == RFC_CHAR || node->type == RFC_CHAR_ARRAY) {
 			buffer_size += count * sizeof(char);
+		} else {
+			return rfc_error_unimplemented("node type at get buffer size");
 		}
 		node = node->next;
 	}

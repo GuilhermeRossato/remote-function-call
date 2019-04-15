@@ -73,6 +73,25 @@ int execute_unit_test_3() {
 	}
 }
 
+int execute_unit_test_4() {
+	global_value = 0;
+	int local_array[] = {9, 8, 7, 6, 5};
+	int index = 2;
+	int return_value = rfc_call("internal", "set_at_index", "int*", local_array, 5, "int", index);
+	if (return_value != 5) {
+		printf("Error at sub-test 4: The call returned unexpected value\n");
+		printf("Expect: %d\n", 5);
+		printf("Output: %d\n", return_value);
+		exit(1);
+	}
+	if (global_value != local_array[index]) {
+		printf("Error at sub-test 4: The global value has an unexpected value\n");
+		printf("Expect: %d\n", local_array[index]);
+		printf("Output: %d\n", global_value);
+		exit(1);
+	}
+}
+
 int main() {
 	if (!rfc_expose("int set_one()", set_one)) {
 		printf("Test failed:\nThe 'set_one' expose returned an error code\n");
@@ -93,5 +112,6 @@ int main() {
 	execute_unit_test_1();
 	execute_unit_test_2();
 	execute_unit_test_3();
+	execute_unit_test_4();
 	return 0;
 }
