@@ -13,17 +13,16 @@ int foo1(char a, char b) {
 	return 492;
 }
 
-int foo2(int a, int b, int c, int d) {
+int foo2(int a, int b, int c) {
 	global_value += a;
 	global_value += b;
 	global_value += c;
-	global_value -= d;
 	return 7;
 }
 
 int execute_unit_test_1() {
-	char v_a = 3;
-	char v_b = 7;
+	char v_a = 49;
+	char v_b = 12;
 
 	rfc_parameter_info a, b;
 	a.type = RFC_CHAR;
@@ -46,7 +45,7 @@ int execute_unit_test_1() {
 	}
 
 	global_value = 0;
-	int call_result = rfc_call_exposed_function("foo1", buffer);
+	int call_result = rfc_call_exposed_function("foo1", buffer, buffer_size);
 	if (call_result != 492) {
 		free(buffer);
 		printf("Error at sub-test 1: Function returned incorrect value\n");
@@ -70,7 +69,6 @@ int execute_unit_test_2() {
 	int v_a = 3;
 	int v_b = 7;
 	int v_c = 15;
-	int v_d = 19;
 
 	rfc_parameter_info a, b, c, d;
 	a.type = RFC_INT;
@@ -85,13 +83,8 @@ int execute_unit_test_2() {
 
 	c.type = RFC_INT;
 	c.count = 0;
-	c.next = &d;
+	c.next = 0;
 	c.data = (void *) &v_c;
-
-	d.type = RFC_INT;
-	d.count = 0;
-	d.next = 0;
-	d.data = (void *) &v_d;
 
 	size_t buffer_size = rfc_get_buffer_size(&a);
 	char * buffer = (char *) malloc(sizeof(char) * buffer_size);
@@ -103,18 +96,18 @@ int execute_unit_test_2() {
 	}
 
 	global_value = 0;
-	int call_result = rfc_call_exposed_function("foo2", buffer);
+	int call_result = rfc_call_exposed_function("foo2", buffer, buffer_size);
 	if (call_result != 7) {
 		free(buffer);
 		printf("Error at sub-test 2: Function returned incorrect value\n");
 		exit(1);
 	}
 
-	if (global_value != v_a+v_b+v_c-v_d) {
+	if (global_value != v_a+v_b+v_c) {
 		free(buffer);
 		printf("Error at sub-test 2: The global value is incorrect\n");
 		printf("Output: %d\n", global_value);
-		printf("Expect: %d\n", v_a+v_b+v_c-v_d);
+		printf("Expect: %d\n", v_a+v_b+v_c);
 		exit(1);
 	}
 
@@ -126,7 +119,7 @@ int main() {
 		printf("Test failed:\nThe first expose returned an error code\n");
 		exit(1);
 	}
-	if (!rfc_expose("int foo2(int, int, int, int)", foo2)) {
+	if (!rfc_expose("int foo2(int, int, int)", foo2)) {
 		printf("Test failed:\nThe second expose returned an error code\n");
 		exit(1);
 	}

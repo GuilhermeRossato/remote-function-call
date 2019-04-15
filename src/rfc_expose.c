@@ -40,7 +40,7 @@ int rfc_expose(char * descriptor, void * func) {
 	enum rfc_input_type input_type = rfc_get_input_type_from_param_descriptor(params);
 	if (input_type == rfc_unknown) {
 		char err_desc[45];
-		snprintf(err_desc, 45, "function params as \"%s\"", params);
+		snprintf(err_desc, 45, "exposed params as \"%s\"", params);
 		return rfc_error_unimplemented(err_desc);
 	}
 
