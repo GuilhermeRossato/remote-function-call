@@ -63,16 +63,8 @@ int _rfc_internal_call_function(char * connection_str, ...) {
 	int last_int;
 	void * last_data;
 
-	int loop_index = 0;
 	char checker[3];
 	while (1) {
-		loop_index++;
-		if (loop_index > 32) {
-			printf("RFC call error: too deep at state %d amount %d\n", state, loop_index);
-			_rfc_free_param_info(&root);
-			va_end(ap);
-			return -1;
-		}
 		if (state == 0) {
 			last_type_string = va_arg(ap, char *);
 			if (last_type_string == 0 || last_type_string == (char *) 0) {
@@ -90,30 +82,19 @@ int _rfc_internal_call_function(char * connection_str, ...) {
 		} else if (state == 1) {
 			last_type_id = rfc_decode_type_desc(last_type_string);
 			if (last_type_id == RFC_CHAR_ARRAY || last_type_id == RFC_INT_ARRAY) {
-				last_length = va_arg(ap, int);
+				last_data = (void *) va_arg(ap, void *);
 				state = 2;
-			} else if (last_type_id == RFC_INT) {
+			} else if (last_type_id == RFC_INT || last_type_id == RFC_CHAR) {
 				last_param_node = _rfc_malloc_to_param_info(last_param_node, last_type_id, 0, (void *) 0);
-				last_param_node->data = (int *) malloc(sizeof(int));
+				last_param_node->data = (void *) malloc(sizeof(int));
+				last_param_node->is_data_allocated = 1;
 				*((int *)last_param_node->data) = va_arg(ap, int);
-				printf("added int %d\n", *((int *)last_param_node->data));
-				state = 0;
-			} else if (last_type_id == RFC_CHAR) {
-				last_char = va_arg(ap, int);
-				printf("added char %c\n", last_char);
-				//last_param_node = _rfc_malloc_to_param_info(last_param_node, last_type_id, 0, va_arg(ap, char*));
 				state = 0;
 			}
 		} else if (state == 2) {
-			printf("added array with %d size\n", last_length);
-			if (last_type_id == RFC_INT_ARRAY) {
-				printf("added int ARRAY\n");
-				last_data = (void *) va_arg(ap, int *);
-				//last_param_node = _rfc_malloc_to_param_info(last_param_node, last_type_id, last_length, va_arg(ap, int*));
-			} else if (last_type_id == RFC_CHAR_ARRAY) {
-				printf("added char ARRAY\n");
-				last_data = (void *) va_arg(ap, char *);
-				//last_param_node = _rfc_malloc_to_param_info(last_param_node, last_type_id, last_length, va_arg(ap, char*));
+			if (last_type_id == RFC_INT_ARRAY || last_type_id == RFC_CHAR_ARRAY) {
+				last_length = va_arg(ap, int);
+				last_param_node = _rfc_malloc_to_param_info(last_param_node, last_type_id, last_length, last_data);
 			}
 			state = 0;
 		} else {
@@ -123,16 +104,16 @@ int _rfc_internal_call_function(char * connection_str, ...) {
 			return 0;
 		}
 	}
-
 	unsigned int buffer_length = rfc_get_buffer_size(&root);
 
 	char * buffer = (char *) malloc(sizeof(char) * buffer_length);
-	rfc_build_buffer(&root, buffer, buffer_length);
-	//printf("attempting to call %s with parameter type %s\n", function_name, last_param_node->type == RFC_INT ? "INT":"CHAR");
-	//printf("the buffer starts with %x %x %x %x\n", buffer[0], buffer[1], buffer[2], buffer[3]);
-	int return_value = rfc_call_exposed_function(function_name, buffer);
-	//int return_value = 1;
-	//printf("call finished\n");
+	int return_value = rfc_build_buffer(&root, buffer, buffer_length);
+
+	if (!return_value) {
+		return return_value;
+	}
+
+	return_value = rfc_call_exposed_function(function_name, buffer, buffer_length);
 	_rfc_free_param_info(&root);
 	free(buffer);
 	va_end(ap);
@@ -140,13 +121,6 @@ int _rfc_internal_call_function(char * connection_str, ...) {
 }
 
 rfc_parameter_info * _rfc_malloc_to_param_info(rfc_parameter_info * last, RFC_PARAMTYPE_TYPE type, RFC_PARAMSIZE_TYPE count, void * data) {
-	if (last->data == 0 && last->next == 0) {
-		last->next = 0;
-		last->type = type;
-		last->count = count;
-		last->data = data;
-		return last;
-	}
 	rfc_parameter_info * node = last;
 
 	while (node) {
@@ -164,6 +138,7 @@ rfc_parameter_info * _rfc_malloc_to_param_info(rfc_parameter_info * last, RFC_PA
 	node->count = count;
 	node->data = data;
 	node->next = 0;
+	node->is_data_allocated = 0;
 	return node;
 }
 
@@ -173,10 +148,16 @@ int _rfc_free_param_info(rfc_parameter_info * root) {
 	if (node == 0 || node->next == 0) {
 		return 0;
 	}
+	if (node->is_data_allocated != 0){
+		free(node->data);
+	}
 	node = node->next;
 	do {
 		next = node->next;
 		if (node != 0) {
+			if (node->is_data_allocated != 0){
+				free(node->data);
+			}
 			free(node);
 		}
 		node = next;
