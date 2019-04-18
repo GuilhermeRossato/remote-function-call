@@ -37,7 +37,7 @@ int execute_unit_test_2() {
 	int value = 67;
 
 	a.type = RFC_INT;
-	a.count = 1;
+	a.count = 0;
 	a.next = 0;
 	a.data = &value;
 
@@ -101,7 +101,7 @@ int execute_unit_test_3() {
 	char value = 67;
 	rfc_parameter_info a;
 	a.type = RFC_CHAR;
-	a.count = 1;
+	a.count = 0;
 	a.next = 0;
 	a.data = &value;
 
