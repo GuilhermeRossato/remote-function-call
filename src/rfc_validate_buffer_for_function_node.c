@@ -1,260 +1,109 @@
 #include "rfc_shared.h"
 
-int rfc_validate_buffer_for_function_node(void * buffer, func_node_type * node) {
+int rfc_validate_buffer_for_function_node(unsigned char * buffer, unsigned int buffer_size, func_node_type * node) {
 	if (buffer == 0 || node == 0) {
 		return rfc_error_invalid_something("validation parameters");
+	}
+	int types[6];
+	int counts[6];
+	void * ptr[6];
+	int ptr_id = 0;
+	int index = 0;
+	int state = 0;
+	char error_message[70];
+
+	int buffer_size_aux = *((int *) buffer);
+	if (buffer_size_aux != buffer_size) {
+		snprintf(error_message, 69, "buffer size mismatch at validate buffer (expected %d, got %d)", buffer_size_aux, buffer_size - sizeof(int));
+		return rfc_error_invalid_something(error_message);
+	}
+	index += sizeof(int);
+
+	while (index < buffer_size && ptr_id < 6) {
+		if (state == 0) {
+			types[ptr_id] = *((int *) &buffer[index]);
+			if (types[ptr_id] != RFC_INT && types[ptr_id] != RFC_CHAR && types[ptr_id] != RFC_CHAR_ARRAY && types[ptr_id] != RFC_INT_ARRAY) {
+				snprintf(error_message, 70, "parameter type at parameter %d (%d)", ptr_id, types[ptr_id]);
+				return rfc_error_invalid_something(error_message);
+			}
+			index += sizeof(int);
+			state = 1;
+		} else if (state == 1) {
+			counts[ptr_id] = *((int *) &buffer[index]);
+			if (counts[ptr_id] != 0 && (types[ptr_id] == RFC_INT || types[ptr_id] == RFC_CHAR)) {
+				snprintf(error_message, 64, "parameter count at parameter %d", ptr_id);
+				return rfc_error_invalid_something(error_message);
+			}
+			index += sizeof(int);
+			state = 2;
+		} else if (state == 2) {
+			if (types[ptr_id] == RFC_INT) {
+				ptr[ptr_id] = (void *) &buffer[index];
+				index += sizeof(int);
+				ptr_id++;
+				state = 0;
+			} else if (types[ptr_id] == RFC_CHAR) {
+				ptr[ptr_id] = (void *) &buffer[index];
+				index += sizeof(char);
+				ptr_id++;
+				state = 0;
+			} else if (types[ptr_id] == RFC_INT_ARRAY) {
+				ptr[ptr_id] = (void *) &buffer[index];
+				index += sizeof(int) * counts[ptr_id];
+				ptr_id++;
+				state = 0;
+			} else if (types[ptr_id] == RFC_CHAR_ARRAY) {
+				ptr[ptr_id] = (void *) &buffer[index];
+				index += sizeof(char) * counts[ptr_id];
+				ptr_id++;
+				state = 0;
+			} else {
+				snprintf(error_message, 64, "type id at parameter %d", ptr_id);
+				return rfc_error_unimplemented(error_message);
+			}
+		} else {
+			return rfc_error_invalid_something("state at function dereference");
+		}
+	}
+	if (ptr_id > 4) {
+		return rfc_error_unimplemented("too many parameters at validate buffer");
 	}
 
 	enum rfc_input_type i = node->input_type;
 
-	void * helper = (void *) buffer;
-	int * int_aux = (int *) buffer;
-	char * char_aux = (char *) buffer;
+	if (i == rfc_unknown) {
+		return rfc_error_invalid_something("function type at validate buffer");
+	} else if (i == rfc_void) {
+		if (ptr_id == 0) {
+			return 1;
+		} else {
+			return rfc_error_invalid_something("function does not need parameters");
+		}
+	}
 
-	int type, count;
-	if (i == rfc_void) {
-		return 1;
-	} else if (i == rfc_int) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
+	for (index = 0; index < ptr_id; index ++) {
+		int c_int =   0x00000010 << (index*4);
+		int c_inta =  0x00000020 << (index*4);
+		int c_char =  0x00000030 << (index*4);
+		int c_chara = 0x00000040 << (index*4);
+
+		if ((i & c_int) == c_int) {
+			if (types[index] != RFC_INT) {
+				return rfc_error_mismatched_parameter("validate_buffer", "type", RFC_INT, types[index], index);
+			} else if (counts[index] != 0) {
+				return rfc_error_mismatched_parameter("validate_buffer", "count", 0, counts[index], index);
+			}
+		} else if ((i & c_char) == c_char) {
+			if (types[index] != RFC_CHAR) {
+				return rfc_error_mismatched_parameter("validate_buffer", "type", RFC_CHAR, types[index], index);
+			} else if (counts[index] != 0) {
+				return rfc_error_mismatched_parameter("validate_buffer", "count", 0, counts[index], index);
+			}
+		} else if ((i & c_inta) == c_inta && types[index] != RFC_INT_ARRAY) {
+			return rfc_error_mismatched_parameter("validate_buffer", "type", RFC_INT_ARRAY, types[index], index);
+		} else if ((i & c_chara) == c_chara && types[index] != RFC_CHAR_ARRAY) {
+			return rfc_error_mismatched_parameter("validate_buffer", "type", RFC_INT, types[index], index);
 		}
-		return 1;
-	} else if (i == rfc_char) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_int_int) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_int_char) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_char_int) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_char_char) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_int_int_int) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_int_int_char) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_int_char_int) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_int_char_char) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_char_int_int) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_char_int_char) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 2 + sizeof(int) + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_char_char_int) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 1);
-		if (type != RFC_INT || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_char_char_char) {
-		type = *(int *) (helper + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		type = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 0);
-		count = *(int *) (helper + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 2 + sizeof(char) + sizeof(int) * 1);
-		if (type != RFC_CHAR || count != 0) {
-			return rfc_error_invalid_something("parameter from validation");
-		}
-		return 1;
-	} else if (i == rfc_inta) {
-		if (int_aux[0] != RFC_INT_ARRAY) {
-			return rfc_error_invalid_something("first parameter type");
-		}
-	} else if (i == rfc_inta_int) {
-		if (int_aux[0] != RFC_INT_ARRAY) {
-			return rfc_error_invalid_something("first parameter type");
-		}
-		int first_parameter_count = int_aux[1] == 0 ? 1 : int_aux[1];
-		if (int_aux[1+first_parameter_count+1] != RFC_INT) {
-			return rfc_error_invalid_something("second parameter type");
-		}
-		if (int_aux[1+first_parameter_count+2] != 0) {
-			return rfc_error_invalid_something("second parameter count");
-		}
-	} else if (i == rfc_chara) {
-		if (int_aux[0] != RFC_CHAR_ARRAY) {
-			return rfc_error_invalid_something("first parameter type");
-		}
-	} else if (i == rfc_chara_int) {
-		if (int_aux[0] != RFC_CHAR_ARRAY) {
-			return rfc_error_invalid_something("first parameter type");
-		}
-		int_aux++;
-		int string_count = *int_aux;
-		int_aux++;
-		char_aux = (char *) int_aux;
-		printf("skipping %d characters\n", string_count);
-		int x;
-		for (x=-4;x<string_count+4;x++) {
-			printf("%d ", char_aux[x]);
-		}
-		printf("\n");
-		char_aux += string_count - 1;
-		int_aux = (int *) char_aux;
-		if (int_aux[0] != RFC_CHAR) {
-			return rfc_error_invalid_something("second parameter type");
-		}
-		if (int_aux[1] != 0) {
-			return rfc_error_invalid_something("second parameter count");
-		}
-	} else {
-		return rfc_error_invalid_something("(unhandled) validation for function node");
 	}
 	return 1;
 }

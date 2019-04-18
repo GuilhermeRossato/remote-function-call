@@ -71,6 +71,11 @@ int rfc_error_unimplemented(char * section) {
 	return 0;
 }
 
+int rfc_error_mismatched_parameter(char * origin_file, char * type, int expected_id, int type_id, int parameter_id) {
+	printf("RFC Error: Mismatched parameter %s, expected %d, got %d at parameter %d\n", type, expected_id, type_id, parameter_id);
+	return 0;
+}
+
 int rfc_error_function_not_found(char * name) {
 	printf("RFC Error: The function \"%s\" was not found or is not exposed\n", name);
 	return 0;
