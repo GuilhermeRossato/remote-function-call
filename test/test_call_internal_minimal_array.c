@@ -48,9 +48,16 @@ int foo14(int * a, int * b, int * c) {
 	return 1;
 }
 
-void expose_function(char * name, void * func) {
-	if (!rfc_expose(name, func)) {
-		printf("Test failed:\nThe '%s' expose returned an error code\n", name);
+void expose_function(char * descriptor, void * func) {
+	if (!rfc_expose(descriptor, func)) {
+		printf("Test failed:\nThe '%s' expose returned an error code\n", descriptor);
+		exit(1);
+	}
+}
+
+void assert_value(char * function, int result) {
+	if (!result) {
+		printf("Test failed:\nThe '%s' call returned an error code\n", function);
 		exit(1);
 	}
 }
@@ -68,10 +75,16 @@ int main() {
 	expose_function("int foo10(int*, int*, int )", foo10);
 	expose_function("int foo11(int , int , int*)", foo11);
 	expose_function("int foo12(int*, int , int*)", foo12);
-	expose_function("int foo12(int , int*, int*)", foo13);
-	expose_function("int foo12(int*, int*, int*)", foo14);
-	int buffer[2] = {0};
-	if (!rfc_call("internal", "foo2", "int*", 1, buffer)) { exit(1); }
-	printf("Graceful finish\n");
+	expose_function("int foo13(int , int*, int*)", foo13);
+	expose_function("int foo14(int*, int*, int*)", foo14);
+	int buffer[32] = {0};
+	buffer[14] = 13;
+	buffer[14+7] = 12;
+	assert_value("foo1", rfc_call("internal", "foo1", "int", buffer[14]));
+	assert_value("foo2", rfc_call("internal", "foo2", "int*", &buffer[14], 8));
+	assert_value("foo3", rfc_call("internal", "foo3", "int", buffer[14], "int", buffer[14+7]));
+	assert_value("foo4", rfc_call("internal", "foo4", "int*", &buffer[14], "int", buffer[14+7]));
+	assert_value("foo5", rfc_call("internal", "foo5", "int", &buffer[14], "int*", &buffer[14], 8));
+	assert_value("foo6", rfc_call("internal", "foo6", "int*", &buffer[14], 8, "int*", &buffer[14], 8));
 	return 0;
 }
