@@ -6,7 +6,7 @@
 
 const { recursively_generate_descriptor_list, get_options_from_type_array } = require("./primitives.js");
 
-generate_test_files(["int", "char"], 3);
+generate_test_files(["int", "char"], 4);
 
 function generate_function_declarations(type_descriptor_list = [{ type: 'inta', parameter: 'int*' }], type="array") {
 	const list = type_descriptor_list;
@@ -37,7 +37,7 @@ function generate_function_declarations(type_descriptor_list = [{ type: 'inta', 
 }
 
 function generate_number_for_index(index) {
-	return index;
+	return index%127;
 }
 
 function generate_function_expose(type_descriptor_list = [{ type: 'inta', parameter: 'int*' }], type="array") {
@@ -133,7 +133,7 @@ function generate_main() {
 }
 
 function generate_test_variation(type_array_list = ["int", "char"], max_depth = 2, type="simple") {
-	var prefix = "/**\n * This file was generated automatically by the command \"npm run generate-intensive-call-test\".\n * Do not change it manually.\n */\n\n";
+	var prefix = "/**\n * This file was generated automatically by the command \"npm run generate-intensive-call-test\".\n * Refrain from changing it manually.\n */\n\n";
 
 	prefix += [
 		'#include <stdlib.h>',

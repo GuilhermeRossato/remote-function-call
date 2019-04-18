@@ -82,27 +82,29 @@ int rfc_validate_buffer_for_function_node(unsigned char * buffer, unsigned int b
 	}
 
 	for (index = 0; index < ptr_id; index ++) {
+		int mask =   0x000000f0 << (index*4);
+
 		int c_int =   0x00000010 << (index*4);
 		int c_inta =  0x00000020 << (index*4);
 		int c_char =  0x00000030 << (index*4);
 		int c_chara = 0x00000040 << (index*4);
 
-		if ((i & c_int) == c_int) {
+		if ((i & mask) == c_int) {
 			if (types[index] != RFC_INT) {
 				return rfc_error_mismatched_parameter("validate_buffer", "type", RFC_INT, types[index], index);
 			} else if (counts[index] != 0) {
 				return rfc_error_mismatched_parameter("validate_buffer", "count", 0, counts[index], index);
 			}
-		} else if ((i & c_char) == c_char) {
+		} else if ((i & mask) == c_char) {
 			if (types[index] != RFC_CHAR) {
 				return rfc_error_mismatched_parameter("validate_buffer", "type", RFC_CHAR, types[index], index);
 			} else if (counts[index] != 0) {
 				return rfc_error_mismatched_parameter("validate_buffer", "count", 0, counts[index], index);
 			}
-		} else if ((i & c_inta) == c_inta && types[index] != RFC_INT_ARRAY) {
+		} else if ((i & mask) == c_inta && types[index] != RFC_INT_ARRAY) {
 			return rfc_error_mismatched_parameter("validate_buffer", "type", RFC_INT_ARRAY, types[index], index);
-		} else if ((i & c_chara) == c_chara && types[index] != RFC_CHAR_ARRAY) {
-			return rfc_error_mismatched_parameter("validate_buffer", "type", RFC_INT, types[index], index);
+		} else if ((i & mask) == c_chara && types[index] != RFC_CHAR_ARRAY) {
+			return rfc_error_mismatched_parameter("validate_buffer", "type", RFC_CHAR_ARRAY, types[index], index);
 		}
 	}
 	return 1;

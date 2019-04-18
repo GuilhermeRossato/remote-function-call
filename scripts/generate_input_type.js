@@ -111,7 +111,7 @@ function generate_file(type_array_list = ["int", "char"], max_depth = 2) {
 	const join = (typeof path === "object" ? path : require("path")).join;
 	const targetFilePath = join(__dirname, "..", "src", "rfc_input_type.c");
 
-	const prefix = "/**\n * This file was generated automatically by the command \"npm run generate-input-type\".\n * Do not change it manually.\n */\n\n";
+	const prefix = "/**\n * This file was generated automatically by the command \"npm run generate-input-type\".\n * Refrain from changing it manually.\n */\n\n";
 	const enum_declaration = generate_enum(type_list, list);
 	const function_declaration = generate_function(list);
 	const content = prefix + enum_declaration + "\n" + function_declaration;
