@@ -83,8 +83,8 @@ int main() {
 	assert_value("foo1", rfc_call("internal", "foo1", "int", buffer[14]));
 	assert_value("foo2", rfc_call("internal", "foo2", "int*", &buffer[14], 8));
 	assert_value("foo3", rfc_call("internal", "foo3", "int", buffer[14], "int", buffer[14+7]));
-	assert_value("foo4", rfc_call("internal", "foo4", "int*", &buffer[14], "int", buffer[14+7]));
-	assert_value("foo5", rfc_call("internal", "foo5", "int", &buffer[14], "int*", &buffer[14], 8));
-	assert_value("foo6", rfc_call("internal", "foo6", "int*", &buffer[14], 8, "int*", &buffer[14], 8));
+	//assert_value("foo4", rfc_call("internal", "foo4", "int*", &buffer[14], "int", buffer[14+7]));
+	//assert_value("foo5", rfc_call("internal", "foo5", "int", &buffer[14], "int*", &buffer[14], 8));
+	//assert_value("foo6", rfc_call("internal", "foo6", "int*", &buffer[14], 8, "int*", &buffer[14], 8));
 	return 0;
 }
