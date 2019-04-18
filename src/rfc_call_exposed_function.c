@@ -15,8 +15,7 @@ int rfc_call_exposed_function(char * name, unsigned char * input_buffer, int inp
 	int buffer_size = *int_aux;
 
 	int_aux++;
-
-	int validation_result = rfc_validate_buffer_for_function_node((void *) int_aux, node);
+	int validation_result = rfc_validate_buffer_for_function_node((void *) input_buffer, input_length, node);
 	if (!validation_result) {
 		return validation_result;
 	}

@@ -2,7 +2,7 @@
 #include "rfc_shared.h"
 #include "rfc_get_buffer_size.c"
 
-int rfc_build_buffer(rfc_parameter_info * root, RFC_BYTEARRAY_TYPE * buffer, int buffer_size) {
+int rfc_build_buffer(rfc_parameter_info * root, RFC_BYTEARRAY_TYPE * buffer, unsigned int buffer_size) {
 	rfc_parameter_info * node = root;
 	int buffer_index = 0;
 

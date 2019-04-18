@@ -31,7 +31,7 @@ int rfc_expose(char * descriptor, void * func) {
 	int function_name_length = open_paren-(&descriptor[4]);
 	strncpy(function_name, &descriptor[4], function_name_length);
 	function_name[function_name_length] = '\0';
-	
+
 	// Trim trailing spaces from function name if necessary
 	if (function_name[function_name_length-1] == ' ') {
 		int i;
@@ -41,7 +41,6 @@ int rfc_expose(char * descriptor, void * func) {
 			}
 		}
 	}
-	printf("exposing \"%s\"\n", function_name);
 
 	char params[128];
 	rfc_put_filtered_string(&descriptor[4+function_name_length+1], ' ', params, 127);
