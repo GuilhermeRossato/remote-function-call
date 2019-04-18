@@ -63,16 +63,18 @@ int _rfc_internal_call_function(char * connection_str, ...) {
 	int last_int;
 	void * last_data;
 
-	char checker[3];
+	char pointer_checker[3];
 	while (1) {
 		if (state == 0) {
 			last_type_string = va_arg(ap, char *);
 			if (last_type_string == 0 || last_type_string == (char *) 0) {
 				break;
 			}
-			snprintf(checker, 3, "%d", last_type_string);
-			if (checker[0] == '0' && checker[1] == '\0') {
-				printf("rfc_call.c: Warning: this line should not be executed\n");
+			snprintf(pointer_checker, 3, "%d", last_type_string);
+			if (pointer_checker[0] == '0' && pointer_checker[1] == '\0') {
+				// This happens more often than you'd believe
+				// printf("(%d==%d) results in %d\n", 0, last_type_string, last_type_string == 0);
+				// The above print statement prints "(0==0) results in 0"
 				break;
 			}
 			if (*last_type_string == '\0') {
