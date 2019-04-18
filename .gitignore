@@ -29,3 +29,5 @@ node_modules
 
 # Windows executables
 *.exe
+
+*.bat
