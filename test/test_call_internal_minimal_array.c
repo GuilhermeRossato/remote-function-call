@@ -23,30 +23,6 @@ int foo5(int a, int * b) {
 int foo6(int * a, int * b) {
 	return 1;
 }
-int foo7(int a, int b, int c) {
-	return 1;
-}
-int foo8(int * a, int b, int c) {
-	return 1;
-}
-int foo9(int a, int * b, int c) {
-	return 1;
-}
-int foo10(int * a, int * b, int c) {
-	return 1;
-}
-int foo11(int a, int b, int * c) {
-	return 1;
-}
-int foo12(int * a, int b, int * c) {
-	return 1;
-}
-int foo13(int a, int * b, int * c) {
-	return 1;
-}
-int foo14(int * a, int * b, int * c) {
-	return 1;
-}
 
 void expose_function(char * descriptor, void * func) {
 	if (!rfc_expose(descriptor, func)) {
@@ -69,22 +45,14 @@ int main() {
 	expose_function("int foo4 (int*, int )", foo4);
 	expose_function("int foo5 (int , int*)", foo5);
 	expose_function("int foo6 (int*, int*)", foo6);
-	expose_function("int foo7 (int , int , int )", foo7);
-	expose_function("int foo8 (int*, int , int )", foo8);
-	expose_function("int foo9 (int , int*, int )", foo9);
-	expose_function("int foo10(int*, int*, int )", foo10);
-	expose_function("int foo11(int , int , int*)", foo11);
-	expose_function("int foo12(int*, int , int*)", foo12);
-	expose_function("int foo13(int , int*, int*)", foo13);
-	expose_function("int foo14(int*, int*, int*)", foo14);
 	int buffer[32] = {0};
 	buffer[14] = 13;
 	buffer[14+7] = 12;
 	assert_value("foo1", rfc_call("internal", "foo1", "int", buffer[14]));
 	assert_value("foo2", rfc_call("internal", "foo2", "int*", &buffer[14], 8));
 	assert_value("foo3", rfc_call("internal", "foo3", "int", buffer[14], "int", buffer[14+7]));
-	//assert_value("foo4", rfc_call("internal", "foo4", "int*", &buffer[14], "int", buffer[14+7]));
-	//assert_value("foo5", rfc_call("internal", "foo5", "int", &buffer[14], "int*", &buffer[14], 8));
-	//assert_value("foo6", rfc_call("internal", "foo6", "int*", &buffer[14], 8, "int*", &buffer[14], 8));
+	assert_value("foo4", rfc_call("internal", "foo4", "int*", &buffer[14], 8, "int", buffer[14+7]));
+	assert_value("foo5", rfc_call("internal", "foo5", "int", &buffer[14], "int*", &buffer[14], 8));
+	assert_value("foo6", rfc_call("internal", "foo6", "int*", &buffer[14], 8, "int*", &buffer[14], 8));
 	return 0;
 }
