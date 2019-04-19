@@ -91,9 +91,9 @@ function generate_function_test(type_descriptor_list = [{ type: 'inta', paramete
 				thisPointerList.push({
 					"name": get_unique_variable("ptr", index, i),
 					"type": a.replace("*", ""),
-					"value": "{127, "+generate_number_for_index(index)+", 127}"
+					"value": "{127, 126, "+generate_number_for_index(index)+", 127}"
 				});
-				return '"'+a+'"'+", 3, "+get_unique_variable("ptr", index, i);
+				return '"'+a+'"'+", "+get_unique_variable("ptr", index, i)+", 4";
 			} else {
 				return '"'+a+'"'+", "+generate_number_for_index(index);
 			}
