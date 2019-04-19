@@ -7,7 +7,7 @@
 #include "rfc_call_exposed_function.c"
 #include <malloc.h>
 
-#define rfc_call(...) _rfc_internal_call_function(__VA_ARGS__, 0)
+#define rfc_call(...) _rfc_internal_call_function(__VA_ARGS__, 0, 0)
 
 rfc_parameter_info * _rfc_malloc_to_param_info(rfc_parameter_info * last, RFC_PARAMTYPE_TYPE type, RFC_PARAMSIZE_TYPE count, void * data);
 int _rfc_free_param_info(rfc_parameter_info * root);
