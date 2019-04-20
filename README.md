@@ -1,5 +1,5 @@
 <p id="rfc-title" align="center"><img src="https://github.com/GuilhermeRossato/remote-function-call/blob/master/docs/logo.png?raw=true" alt="Remote Function Call Logo"/></p>
-<p align="center">:computer: A incomplete library that allows for function calls between native (C) programs, as an alternative for [RFC](https://users.cs.cf.ac.uk/Dave.Marshall/C/node33.html) with a simpler, more intuitive API. :calling:</p>
+<p align="center">:computer: A incomplete library that allows for function calls between native (C) programs, as an alternative for <a href="https://users.cs.cf.ac.uk/Dave.Marshall/C/node33.html">RFC</a> with a simpler, more intuitive API. :calling:</p>
 
 ## What is Remote Procedure Calling
 
@@ -41,7 +41,7 @@ A RFC call tries to be intuitive by summarizing and abstracting a lot of concept
 The `rfc_call` is the method the client will use to send a call request:
 ```c
 	rfc_call(
-		char * hostname      // Ex: "127.0.0.1:8085" - The hostname, optionally containing the port to be used (8086 by default)
+		char * hostname      // Ex: "127.0.0.1:8085" - The hostname, optionally containing the port to be used
 		char * function_name // Ex: "foo" - The function name exposed by the server that we want to call
 		... // The types, values, and sometimes buffer length of the parameters to be sent.
 	)
@@ -98,7 +98,7 @@ A few other examples of valid descriptor so that you get familiar with it:
 ```c
 "int no_parameters()"; // A function that only returns an int, but receives no argument.
 "int receive_three_integers(int, int, int)"; // receives 3 parameter and is exposed as "receive_three_integers"
-"int receive_text     (char *)"; // Extra spaces after the function name "receive_text" are ignored, also the function receives a char array
+"int receive_text     (char *)"; // Extra spaces after the function name "receive_text" are ignored, the parameter is a char array
 "int receive_many_text(char *, char*, char    *, char*)"; // Receives many char* parameters, and as you can see spaces are ignored.
 ```
 
@@ -533,6 +533,7 @@ Treat the values you send from the client to the server as public, as someone co
 
 This application should not run on sensitive environments. Ideally you would have a firewall or a closed network for this to be effective.
 
+I also expect the underlying protocol (TCP) to handle data integrity, since i'm only checking the parameters, its type and sizes.
 
 ## Repository Usage
 
