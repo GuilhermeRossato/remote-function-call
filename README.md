@@ -1,11 +1,11 @@
 <p id="rfc-title" align="center"><img src="https://github.com/GuilhermeRossato/remote-function-call/blob/master/docs/logo.png?raw=true" alt="Remote Function Call Logo"/></p>
-<p align="center">:computer: A incomplete library that allows for function calls between native (C) programs, as an alternative for <a href="https://users.cs.cf.ac.uk/Dave.Marshall/C/node33.html">RFC</a> with a simpler, more intuitive API. :calling:</p>
+<p align="center">:computer: A incomplete library that allows for function calls between native (C) programs, as a simpler alternative for <a href="https://users.cs.cf.ac.uk/Dave.Marshall/C/node33.html">RFC</a>:calling:</p>
 
 ## What is Remote Procedure Calling
 
-Local procedure calling is the default way that native programs work. Remote procedure calling is the technique to allow a process to expose a function to another so that other processes can call a function with parameters almost as if it was defined locally.
+Remote procedure calling is the technique that allows a process to expose a function so that other processes can call this procedure with parameters almost as if it was defined locally.
 
-Basically it is a way to allow local functions to be called with parameters through the network that may or may not run on the same OS, handling problems like endianess and cpu architecture between both computers so that the code itself only has to deal with the 'business' logic.
+Basically it is a way to allow local functions to be called with parameters through the network from a process that may or may not run on the same system or environment, handling problems like endianess and cpu architecture between both computers so that the code itself only has to deal with the 'business' logic.
 
 ### Use Cases
 
