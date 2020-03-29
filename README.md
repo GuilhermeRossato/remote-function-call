@@ -5,7 +5,7 @@
 
 Remote procedure calling is the technique that allows a process to expose a function so that other processes can call this procedure with parameters almost as if it was defined locally.
 
-Basically it is a way to allow local functions to be called with parameters through the network from a process that may or may not run on the same system or environment, handling problems like endianess and cpu architecture between both computers so that the code itself only has to deal with the 'business' logic.
+Basically it is a way to allow local functions to be called with parameters through the network from a process that may or may not run on the same system or environment, handling problems like memory management and cpu architecture between both computers so that the code itself only has to deal with the 'business' logic, instead of network and parameter validation.
 
 ### Use Cases
 
@@ -29,54 +29,34 @@ If you need to go over hoops to do something simple (i.e. call a function from a
  - [Minimal Example](https://github.com/GuilhermeRossato/remote-function-call#minimal-example)
  - [Practical Examples](https://github.com/GuilhermeRossato/remote-function-call#practical-examples)
  - [Calling Remote Procedures](https://github.com/GuilhermeRossato/remote-function-call#calling-remote-procedures)
+ - [Sending arrays in parameters](https://github.com/GuilhermeRossato/remote-function-call#sending-arrays-in-parameters)
  - [Exposing Remote Procedures](https://github.com/GuilhermeRossato/remote-function-call#exposing-remote-procedures)
  - [Security and Data Integrity](https://github.com/GuilhermeRossato/remote-function-call#security-and-data-integrity)
  - [Manually calling the function from the network](https://github.com/GuilhermeRossato/remote-function-call#manually-calling-the-function-from-the-network)
+ - [Interface](https://github.com/GuilhermeRossato/remote-function-call#interface)
  - [Limitations](https://github.com/GuilhermeRossato/remote-function-call#limitations)
 
 ## Calling Remote Procedures
 
 A RFC call tries to be intuitive by summarizing and abstracting a lot of concepts involved on distributed programming.
 
-The `rfc_call` is the method the client will use to send a call request:
+The `rfc_call` is the method the client will use to send a call request, for example:
 ```c
-	rfc_call(
-		char * hostname      // Ex: "127.0.0.1:8085" - The hostname, optionally containing the port to be used
-		char * function_name // Ex: "foo" - The function name exposed by the server that we want to call
-		... // The types, values, and sometimes buffer length of the parameters to be sent.
-	)
+rfc_call(
+	"127.0.0.1:8085", // The hostname with an optional port of the target server (default port is yet to be decided)
+	"sum_two_integers", // the name of the function exposed by the server
+	"int", // the type of the first parameter of the exposed function at the server
+	1, // the value of the first parameter of the exposed function
+	"int", // the type of the second parameter
+	2 // the last value of the exposed function
+);
 ```
 
-There are two type of parameters you can send through the network: simple and arrays.
-
-**Simple** elements are the type themselves, like `int`, `char`, `double`, `long`, etc.
-
-To send a parameter of the `single` type, you can just tell the `rfc_call` the type of the value and the value itself, for example:
-
-```c
-char letter = 'b';
-rfc_call("localhost", "foo", "char", letter);
-rfc_call("localhost", "foo2", "char", letter, "char", letter);
-```
-
-We're expecting `foo` be exposed locally as a function that receives a char parameter, and `foo2` receives two char parameters.
-
-**Arrays** are a bit more complicated since the amount of bytes it contains must be specified after its value, so for example:
-
-```c
-int values[] = {1, 4, 6, 3}; // A int array with 4 values
-rfc_call("localhost", "foo3", "char*", message, 4);
-```
-
-This is necessary since C doesn't have any way to calculate or count the size of arrays.
-
-To sum up: Simple parameters need their type and their value and Array parameters need their type, their pointer, and the number of elements of the array.
-
-RFC Call uses this number to construct the network buffer to be sent to the server.
+We are supposing the server is at the ip address 127.0.0.1 with the port 8085 open and has a function exposed in the format `int sum_two_integers(int, int)`.
 
 ## Exposing Remote Procedures
 
-To expose a function you only need to call the `rfc_expose` function, that follows this format:
+To expose a function you need to call the `rfc_expose` function, which has exactly two parameters and as this syntax:
 
 ```c
 int rfc_expose(
@@ -85,15 +65,15 @@ int rfc_expose(
 );
 ```
 
-The `descriptor` parameter describes the function as a header function, this string will be broken into parts to be saved internally in the library to validate parameters and expose the function name. It follows the following structure:
+The `descriptor` parameter describes the function as a header function just like a C function declaration. The parameter will be parsed and saved internally to validate parameters and expose the function name. It follows the following structure:
 
 ```
-[return type] [function name]([function parameter types])
+<return type> <function name>(<function parameter types>)
 ```
 
-An example of a function descriptor is the following string `"int foo(int)"`, describing a function named `foo`, that receives an `char` as parameter and returns an `int`.
+An example of a function descriptor is the following string `"int foo(char)"`, describing a function named `foo`, that receives an `char` as parameter and returns an `int`.
 
-A few other examples of valid descriptor so that you get familiar with it:
+A few other examples of valid descriptor, even thought you should be familiar with it:
 
 ```c
 "int no_parameters()"; // A function that only returns an int, but receives no argument.
@@ -102,11 +82,11 @@ A few other examples of valid descriptor so that you get familiar with it:
 "int receive_many_text(char *, char*, char    *, char*)"; // Receives many char* parameters, and as you can see spaces are ignored.
 ```
 
-This is where you give the name of the exposed function, you can even change it to a one-letter function to re-route a function name if you want to.
+This is also where you give the name of the exposed function since an exposed function can have a different internal name.
 
-Then, the `function_pointer` parameter is just the pointer to the function you want the exposed function to be associated with
+The second parameter, `function_pointer`, is the pointer to the function you want the exposed function to be associated with.
 
-The following example is a commented example broken into parts for clarity:
+The following example is broken into parts for clarity:
 
 ```c
 // We want to expose this function
@@ -130,14 +110,39 @@ void main() {
 }
 ```
 
+## Sending arrays as parameters
+
+The **simple** parameters like `int`, `char`, `double` and `long`, are very easy to send and receive, as their size is known in runtime and can be easily called:
+
+```c
+char letter = 'b';
+rfc_call("localhost", "foo", "char", letter);
+rfc_call("localhost", "foo2", "char", letter, "char", letter);
+```
+
+However, arrays are a bit more complicated since the call must contain the pointer and the size of the data it intends to send.
+
+It is necessray to pass the size right after the pointer, for example:
+
+```c
+int values[] = {1, 4, 6, 3}; // A int array with 4 values
+rfc_call("localhost", "foo3", "int*", message, 4);
+```
+
+Note we used `int*` instead of `int`, this symbolizes we are sending an array of integers of the size of 4 * sizeof(int) to the exposed function.
+
+In this example, since our array is constant, we could replace the `4` with `sizeof(values) / sizeof(int)`, but that's up for the developer to decide.
+
+The library uses this length to construct the network buffer to be sent to the server.
+
 ## Getting Started on Unix
 
 The library is not complete and using it's usage is not advised since there are a lot of missing features, but once it is complete the following steps should make it work:
 
 The steps below are tailored for Unix systems (like Ubuntu, Debian, or other Linux distros), if you are using windows the command might vary slightly, use [this link](https://github.com/GuilhermeRossato/remote-function-call#getting-started-on-windows) instead.
 
-1. Download the file at [./build/rfc.h](https://github.com/GuilhermeRossato/remote-function-call/blob/master/build/rfc.h?raw=true)
-2. Include it in your `server.c` file:
+1. Download the distribution file at: [./build/rfc.h](https://github.com/GuilhermeRossato/remote-function-call/blob/master/build/rfc.h?raw=true)
+2. Include it in your `server` source:
 
 ```c
 // server.c
@@ -153,19 +158,23 @@ void main() {
 }
 ```
 
-3. Compile your program:
+3. Compile your program with your prefered compiler, like so:
 
 ```bash
 gcc server.c -o server
 ```
 
-4. If the file was created successfully, you should be able to run it:
+There are no dependencies as of now, and the compiler should probably return successfully without any log
+
+4. If the `server` executable was created successfully, you should be able to run it:
 
 ```bash
 ./server
 ```
 
-5. If everything went well, change your `server.c` to allow external requests:
+The server should print 'hello world' at the console, since it called an internal exposed function.
+
+5. Change your `server` source to allow external requests:
 
 ```c
 // server.c
@@ -177,9 +186,11 @@ int test() {
 
 void main() {
 	rfc_expose("int test()", test);
-	rfc_listen();
+	rfc_listen("localhost:8085");
 }
 ```
+
+You should be able to compile and run it the same way as before. This code will open the port 8085 at localhost (127.0.0.1) to expose the declared functions functions (in this case there is only one).
 
 6. Create the `client.c` that will call your exposed function:
 
@@ -319,8 +330,7 @@ int main() {
 
 ```
 
-And instancing a client to call that exposed function with a parameter should be like the following:
-
+Instancing a client to call that exposed function with a parameter is done in the following way:
 
 ```c
 // client.c
@@ -333,7 +343,7 @@ int main() {
 
 ```
 
-The above example is not fully implemented since networking is still missing, but it's the basic principle and it might change as development progresses.
+The above example is not fully implemented (networking is still missing), but it's the basic principle and it might change as development progresses.
 
 ## Practical Examples
 
@@ -356,9 +366,9 @@ int deposit_money(char * name, double value) {
 
 To expose this function to be called from another program running in another machine you would need to create the network connection, create a interface for sending and receiving the request, decode the parameters and finally call the function manually from within your code.
 
-All of that creates a lot of overhead, especially if you just want to send simple parameters, which is the case for IOT, a sensor only needs to send about 3 integers to a server to save these values, do you really need all that?
+All of that creates a lot of overhead especially if you just want to send simple parameters which is the case for IOT: a sensor only needs to send about 3 integers to a server to save these values.
 
-RFC works by abstracting everything between the function call and the server.
+The remote-function-call works by abstracting everything between the function call and the server.
 
 However, since C is a little rigid, you have to call the function defining its types, in the following way:
 
@@ -396,12 +406,13 @@ void main() {
 
 	if (DEBUG) {
 		// Test the function locally before listening for calls to make sure it is working:
-		if (!rfc_call("internal", "save_reading", "int", 1)) {
-			printf("Something went wrong with the function!\n");
+		if (rfc_call("internal", "save_reading", "int", 1) != 1) {
+			printf("Something went wrong with the function, it did not return 1!\n");
 		}
 	}
 
-	rfc_listen();
+	rfc_listen("localhost:8080");
+	rfc_free();
 }
 
 ```
@@ -474,6 +485,8 @@ void main() {
 			break;
 		}
 	}
+
+	rfc_free();
 }
 ```
 
@@ -509,6 +522,8 @@ void main() {
 		rfc_listen_once(8085);
 		printf("The value is now %d\n", value);
 	}
+
+	rfc_free();
 }
 ```
 
@@ -516,28 +531,72 @@ Run the `first` executable, then the `second` and you should see about 10 lines 
 
 That's it!
 
+## Interface
+
+- int rfc_expose(char * descriptor, void * func_ptr)
+
+Specify a internal function that should be exposed at the server when it starts listening. Example: `rfc_expose("foo_external", foo_internal);"
+
+Warning: this allocates memory with malloc for a internal linked list that can only be freed with rfc_free(), which frees everything in the list.
+
+- int rfc_listen(char * host)
+
+Starts listening for external requests as `host:port`. Example: `rfc_listen("localhost:8085")`.
+
+- int rfc_listen_once(char * host)
+
+Listens for a single function call, whatever it is.
+
+- void rfc_stop();
+
+Stops listening for external requests, breaking out of the loop a `rfc_listen`, or does nothing if it was on a `rfc_listen_once` call. Example:
+
+```c
+int stop_listening() { rfc_stop(); } // function declaration
+[...]
+rfc_expose("int stop_everything()", stop_listening); // at startup
+[...]
+rfc_listen("localhost:1234"); // at main
+```
+
+Must be used inside exposed functions, since the process is blocked waiting for network activity. It is also useful to handle fatal errors.
+
+- void rfc_free()
+
+This frees memory created by the rfc_expose function removing all exposed functions and their descriptions from the server. Does absolutely nothing if `rfc_expose` was never called.
+
+After calling this function you will not be able to `rfc_listen` until you call `rfc_expose` again at least once since no function descriptors will be prepared to be received. (This does actually cause an error).
+
+- const char * rfc_get_last_error()
+
+With the exception of the functions that return void, all functions returns an int indicating success. 1 is for successfull operation and 0 is for failure.
+
+If any function returns zero, it means something went wrong and the error const char array is populated with an error message and can be printed like the following:
+
+```c
+if (rfc_listen("localhost:68000) != 1) {
+	printf("Failed because of error: %s\n", rfc_get_last_error());
+}
+```
+
 ## Limitations
 
 Not everything is implemented by default in this library, so if you're not planning on expanding it, then make sure you understand what is not yet supported:
 
  - The return value of the server function MUST be an `int`, nothing else is programmed
- - Only `int` and `char` parameters are implemented as acceptable parameters.
-
-The return value must always be one, doubles, unsigned int and other type of values are not implemented yet.
+ - The only acceptable parameters type to rfc_call are: `int`, `char`.
 
 ## Security and Data Integrity
 
 There is no encryption going on and the data is sent in a simple binary format that is easily interpreted by a middleman or network sniffer.
 
-Treat the values you send from the client to the server as public, as someone could write a program to detect when RFC calls are executed in a network with ease.
+Treat the values you send from the client to the server as public and readable, as someone could write a program to detect when RFC calls are executed in a network with ease if they knew what each parameter meant, which is not difficult since function names will be included in the request. This application should not run on sensitive environments. Ideally you would have a firewall, a closed network or an encryption for this to be effective in sensitive envs.
 
-This application should not run on sensitive environments. Ideally you would have a firewall or a closed network for this to be effective.
-
-I also expect the underlying protocol (TCP) to handle data integrity, since i'm only checking the parameters, its type and sizes.
+I'm also expecting the underlying protocol (TCP) to handle data integrity by only checking the parameters, its type and sizes, before deciding if something is an error or not.
 
 ## Repository Usage
 
-This repository is for the development of the library which will be found at the `build` directory once it is finished.
+This repository is for the development of the built version of this library which will be found at the `build` directory once it is finished.
 
 If you want to develop, change or expand it, here are the steps to clone the repository, install dependencies (with `npm`) and run the test suite:
 
@@ -545,7 +604,7 @@ If you want to develop, change or expand it, here are the steps to clone the rep
 git clone https://github.com/GuilhermeRossato/remote-function-call.git
 cd remote-function-call
 npm install
-npm test
+npm run test
 ```
 
 The library is not done yet, but once it is you will be able to build it with:
@@ -554,22 +613,21 @@ The library is not done yet, but once it is you will be able to build it with:
 npm run build
 ```
 
-This will generate a `rfc.h` file at the `build` folder. To include and use it in your programs C you just need to include it.
+This will generate a `rfc.h` file at the `build` folder. That file will contain  everything you need to use this library.
 
 ### Testing
 
 The testing framework used to test this application is [frappu](https://github.com/GuilhermeRossato/frappu), a minimalist test suite for C projects that helped make this project in a Test-Driven-Development fashion.
 
-Testing can be executed by calling the `frappu` command or the recomended way, running from npm:
+Testing can be executed by calling the `frappu` command or the recomended way, running from the `npm` script:
 
 ```
-npm test
+npm run test
 ```
-
 
 ## Manually calling the function from the network
 
-If you have an ESP32 or an Arduino connected to your network, you can call exposed functions creating your own buffer so you don't need to include this library on your code-base, the packets are very simple:
+If you have an Arduino or an ESP32 connected to your network, you can call exposed functions creating your own buffer so you don't need to include this library on your code-base, the packets are very simple:
 
 1. First, create a TCP connection between you and the `hostname:port` of the running process you want to call the function from.
 2. Leave the process running on the host computer and take note of the exposed function name.
@@ -583,7 +641,7 @@ For example, for a function receiving a single 'A' character as parameter, the b
 
 ` 0x00000016 0x00000001 0x00000000 0x65 `
 
-The buffer size is just the amount of bytes the packet has, including its 4 bytes, the parameter types are 1 for int, 2 for chars (as of now), parameter count is the number of parameter types included in the variable content data (if this values has '2' and the type is int, then there should be 8 bytes describing 2 integers following it).
+The buffer size is just the amount of bytes the packet has, including its 4 bytes, the parameter types numbers are 1 for int, 2 for chars (as of now), parameter count is the number of parameter types included in the variable content data (if this values has '2' and the type is int, then there should be 8 bytes describing 2 integers following it).
 
 Sending this binary data through the connection should give you a result code, which is the return value of the function. If it fails it will return 0. Note that your function can also return 0 on its own to communicate an error.
 
@@ -591,8 +649,43 @@ For example, if you mess up the parameter buffer size, parameter type, or count,
 
 In the future there will be a variety of buffer creation utilities to generate the buffer at `./utils/*`, but I haven't got to write these.
 
+## Memory
+
+This library allocates objects when you call `rfc_expose` with `malloc` and frees all its internal memory when you call `rfc_free`.
+
+Clients which only send data with `rfc_call` don't need to call `rfc_free`, but will also not generate any error if they do call it.
+
+The following is a valid example of well-managed memory code in a server exposing a function, then removing it, then exposing another.
+
+```c
+int number = 0;
+
+void start_calculations() {
+	printf("Started calculations!");
+}
+
+int retrieve_number() {
+	return number;
+}
+
+int main(void) {
+	int i;
+	rfc_expose("start_calculations()", start_calculations);
+	rfc_listen_once("localhost:8085");
+	for (i = 0; i < 10; i++) {
+		number = number + i;
+	}
+	rfc_free(); // all internal memory is freed
+
+	rfc_expose("int retrieve_number()", retrieve_number);
+	rfc_listen_once("localhost:8085");
+	rfc_free(); // all internal memory is freed again
+	return 0;
+}
+```
+
 ## License
 
-The code was written entirely by me and I release it with the license as MIT. Basically you're free to use, edit, modify this code as long as it does not affect me.
+This project and its code, complete or incomplete, was written entirely by me (Guilherme Rossato) and I release it with the MIT license. You're free to use, edit, modify and redistribute this code as long as it does not affect me negatively.
 
 ## That's All
