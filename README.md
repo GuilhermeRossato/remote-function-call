@@ -15,11 +15,11 @@ Basically it is a way to allow local functions to be called with parameters thro
 
 ## Motivation
 
-Most remote function call libraries work with very little layers of abstracting and many steps between calling a function and that annoys me.
+Most remote function call libraries work with very little layers of abstraction and many steps between calling a function which doesn't exist in higher languages.
 
 Programming should be simple and should always strive to be as simple as the language in which they were written allows it.
 
-If you need to go over hoops to do something simple (i.e. call a function from another program) then you're either reinventing the wheel or doing something wrong.
+If you need to go over hoops to do something simple like calling a function from another program then you just have an outdated tool.
 
 ## Useful Links
 
